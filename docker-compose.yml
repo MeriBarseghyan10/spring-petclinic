@@ -6,15 +6,14 @@ services:
     ports:
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_ROOT_PASSWORD=root_password
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_USER=petclinic
       - MYSQL_PASSWORD=petclinic
       - MYSQL_DATABASE=petclinic
     volumes:
       - "./conf.d:/etc/mysql/conf.d:ro"
-    profiles:
-      - mysql
+ 
   postgres:
     image: postgres:16.1
     ports:
@@ -25,3 +24,16 @@ services:
       - POSTGRES_DB=petclinic
     profiles:
       - postgres
+
+  petclinic-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8080"  # Map container's 8080 to host's 8085
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/petclinic
+      - SPRING_DATASOURCE_USERNAME=petclinic
+      - SPRING_DATASOURCE_PASSWORD=petclinic
+    depends_on:
+      - mysql
