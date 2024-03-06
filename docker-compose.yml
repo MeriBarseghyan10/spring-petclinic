@@ -3,6 +3,7 @@ version: "2.2"
 services:
   mysql:
     image: mysql:8.2
+    restart: always 
     ports:
       - "3306:3306"
     environment:
@@ -30,7 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8085:8080"  # Map container's 8080 to host's 8085
+      - "8090:8080"  
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/petclinic
       - SPRING_DATASOURCE_USERNAME=petclinic
