@@ -31,7 +31,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8090:8080"  
+      - "8070:8085"  
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/petclinic
       - SPRING_DATASOURCE_USERNAME=petclinic
