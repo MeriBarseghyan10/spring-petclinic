@@ -9,3 +9,4 @@ FROM azul/zulu-openjdk:17
 WORKDIR /app
 COPY --from=build /app/target/spring-petclinic*.jar /app/spring-petclinic.jar
 CMD ["java", "-jar", "-Dserver.port=8085", "spring-petclinic.jar"]
+
