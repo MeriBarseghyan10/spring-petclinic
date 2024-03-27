@@ -40,22 +40,26 @@ pipeline {
                 }
             }
         }
-        stage('Docker Build and Push') {
-            steps {
-                script {
-                    def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                    sh "docker build -f Dockerfile -t http://localhost:8082/repository/maven-central:${commitHash} ."
-                    sh "docker push http://localhost:8082/repository/maven-central:${commitHash}"
-                }
-            }
-        }
-        stage('Main Docker Build and Push') {
-            steps {
-                script {
-                    sh "docker build -f Dockerfile -t http://localhost:8082/repository/main:latest ."
-                    sh "docker push http://localhost:8082/repository/main:latest"
-                }
-            }
-        }
+      stage('Docker Build and Push') {
+   	 steps {
+        	script {
+            	 def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+            	 def imageName = "http://localhost:8082/repository/maven-central:${commitHash}"
+           	 sh "docker build -f Dockerfile -t ${imageName} ."
+           	 sh "docker push ${imageName}"
+         	 }
+    	 }
+	}
+
+	stage('Main Docker Build and Push') {
+  	  steps {
+       		 script {
+           	  def imageName = "http://localhost:8082/repository/main:latest"
+            	  sh "docker build -f Dockerfile -t ${imageName} ."
+            	  sh "docker push ${imageName}"
+       		     }
+   	        }
+     	}
+
     }
 }
