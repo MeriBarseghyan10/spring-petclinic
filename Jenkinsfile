@@ -3,6 +3,9 @@ pipeline {
     
     stages {
         stage('Checkstyle') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     if (fileExists('pom.xml')) {
@@ -17,6 +20,9 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     if (fileExists('pom.xml')) {
@@ -26,6 +32,9 @@ pipeline {
             }
         }
         stage('Build without Tests') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     if (fileExists('pom.xml')) {
@@ -35,6 +44,9 @@ pipeline {
             }
         }
         stage('Docker Build and Push') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     def commitHash = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
@@ -45,6 +57,9 @@ pipeline {
             }
         }
         stage('Main Docker Build and Push') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     def imageName = "http://localhost:8082/repository/main:latest"
