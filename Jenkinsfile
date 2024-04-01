@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven' 
+        maven 'Maven'
     }
 
     environment {
@@ -12,20 +12,20 @@ pipeline {
     }
 
     stages {
-        // Only 'main' branch executes this stage
+        // The 'main' branch will only execute this stage
         stage('Main Docker Build and Push') {
             when {
                 branch 'main'
             }
             steps {
+                echo 'Building and pushing Docker image for main...'
                 script {
-                    def fullImageName = "${REGISTRY_URL}/repository/main/${IMAGE_NAME}:latest"
-                    dockerImageBuildAndPush(fullImageName)
+                    dockerBuildAndPush('latest', 'main')
                 }
             }
         }
 
-        // Other branches execute these stages
+        // Non-main branches will execute these stages
         stage('Checkstyle') {
             when {
                 not { branch 'main' }
@@ -52,21 +52,21 @@ pipeline {
                 not { branch 'main' }
             }
             steps {
-                echo 'Building...'
+                echo 'Building without running tests...'
                 sh 'mvn clean package -DskipTests'
             }
         }
 
-        // All branches except 'main' execute this stage
+        // Non-main branches will execute this stage
         stage('MR Docker Build and Push') {
             when {
                 not { branch 'main' }
             }
             steps {
+                echo 'Building and pushing Docker image for MR...'
                 script {
-                    def tag = env.GIT_COMMIT.take(7)
-                    def fullImageName = "${REGISTRY_URL}/repository/mr/${IMAGE_NAME}:${tag}"
-                    dockerImageBuildAndPush(fullImageName)
+                    def shortCommit = env.GIT_COMMIT.take(7)
+                    dockerBuildAndPush(shortCommit, 'mr')
                 }
             }
         }
@@ -74,11 +74,12 @@ pipeline {
 }
 
 // Define a method for Docker build and push to avoid repetition
-def dockerImageBuildAndPush(fullImageName) {
+def dockerBuildAndPush(String tag, String repo) {
+    def fullImageName = "${REGISTRY_URL}/repository/${repo}/${IMAGE_NAME}:${tag}"
     withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
         sh "docker login ${REGISTRY_URL} --username $REGISTRY_USER --password $REGISTRY_PASS"
         sh "docker build -t ${fullImageName} ."
         sh "docker push ${fullImageName}"
-        sh "docker logout ${REGISTRY_URL}" // Logout after pushing the image
+        sh "docker logout ${REGISTRY_URL}"
     }
 }
