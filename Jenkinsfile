@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
+        DOCKER_CREDENTIALS_ID = '1111' // The  ID of  Docker registry credentials in Jenkins
     }
 
     stages {
@@ -16,7 +17,7 @@ pipeline {
                 archiveArtifacts artifacts: '**/target/checkstyle-result.xml', fingerprint: true
             }
         }
-        
+
         stage('Test') {
             when {
                 not { branch 'main' } // Only run this stage if the branch is not 'main'
@@ -43,13 +44,13 @@ pipeline {
             }
             steps {
                 script {
-                    // Defining the Docker image name using the commit hash
-                    def shortGitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageName = "spring-petclinic:${shortGitCommit}"
-                    def repositoryUrl = MAIN_REPO_URL
-
-                    // Using the Docker Pipeline plugin syntax to build and push the Docker image
-                    docker.withRegistry('', 'docker-credentials-id') {
+                    // Checking Docker version to ensure Docker is installed and available on the agent
+                    sh 'docker --version'
+                    // Define the Docker image name using the Git commit hash
+                    def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def imageName = "spring-petclinic:${commitSha}"
+                    // Building and pushing the Docker image
+                    docker.withRegistry(MAIN_REPO_URL, DOCKER_CREDENTIALS_ID) {
                         def appImage = docker.build(imageName, '.')
                         appImage.push()
                     }
@@ -61,7 +62,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-           
+        
         }
     }
 }
