@@ -2,17 +2,16 @@ pipeline {
     agent any
 
     environment {
+        // Define the repository URLs and credentials ID
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
         MR_REPO_URL = 'http://localhost:8082/repository/mr'
-        DOCKER_CREDENTIALS_ID = '1111' // The ID of Docker registry credentials in Jenkins
+        DOCKER_CREDENTIALS_ID = '1111'
     }
 
     stages {
         stage('Checkstyle') {
             when {
-                not {
-                    branch 'main'
-                }
+                branch pattern: "^(?!main$).*", comparator: "REGEXP"
             }
             steps {
                 echo 'Running Checkstyle analysis...'
@@ -23,9 +22,7 @@ pipeline {
         
         stage('Test') {
             when {
-                not {
-                    branch 'main'
-                }
+                branch pattern: "^(?!main$).*", comparator: "REGEXP"
             }
             steps {
                 echo 'Running tests...'
@@ -35,9 +32,7 @@ pipeline {
 
         stage('Build') {
             when {
-                not {
-                    branch 'main'
-                }
+                branch pattern: "^(?!main$).*", comparator: "REGEXP"
             }
             steps {
                 echo 'Building project (without tests)...'
@@ -46,6 +41,9 @@ pipeline {
         }
 
         stage('Create and Push Docker Image') {
+            when {
+                branch 'main'
+            }
             steps {
                 script {
                     def shortGitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
@@ -65,7 +63,6 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            
         }
     }
 }
