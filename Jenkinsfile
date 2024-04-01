@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
-        MR_REPO_URL = 'http://localhost:8082/repository/mr'
-        DOCKER_CREDENTIALS_ID = '1111' // The ID of Docker registry credentials in Jenkins
     }
 
     stages {
@@ -45,14 +43,15 @@ pipeline {
             }
             steps {
                 script {
+                    // Defining the Docker image name using the commit hash
                     def shortGitCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def imageName = "spring-petclinic:${shortGitCommit}"
-                    def repositoryUrl = env.MAIN_REPO_URL
+                    def repositoryUrl = MAIN_REPO_URL
 
-                    docker.withRegistry('', env.DOCKER_CREDENTIALS_ID) {
-                        sh "docker build -t ${imageName} ."
-                        sh "docker tag ${imageName} ${repositoryUrl}/${imageName}"
-                        sh "docker push ${repositoryUrl}/${imageName}"
+                    // Using the Docker Pipeline plugin syntax to build and push the Docker image
+                    docker.withRegistry('', 'docker-credentials-id') {
+                        def appImage = docker.build(imageName, '.')
+                        appImage.push()
                     }
                 }
             }
@@ -62,6 +61,7 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
+           
         }
     }
 }
