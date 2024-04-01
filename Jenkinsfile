@@ -6,24 +6,26 @@ pipeline {
     }
 
     environment {
-        //Created Docker registry credentials ID
         DOCKER_CREDENTIALS_ID = 'f1754fdb-84a3-4fcf-bb62-8cac10496521'
-        // Nexus Docker registry URL
         REGISTRY_URL = 'http://localhost:8082'
-        // Docker image name
         IMAGE_NAME = 'spring-petclinic'
     }
 
     stages {
-        stage('Preparation') {
+        // Only 'main' branch executes this stage
+        stage('Main Docker Build and Push') {
+            when {
+                branch 'main'
+            }
             steps {
-                echo 'Preparing the environment...'
                 script {
-                    // This can include initial steps like cloning the repo if not automatically handled by Jenkins
+                    def fullImageName = "${REGISTRY_URL}/repository/main/${IMAGE_NAME}:latest"
+                    dockerImageBuildAndPush(fullImageName)
                 }
             }
         }
 
+        // Other branches execute these stages
         stage('Checkstyle') {
             when {
                 not { branch 'main' }
@@ -55,21 +57,28 @@ pipeline {
             }
         }
 
-        stage('Docker Build and Push') {
+        // All branches except 'main' execute this stage
+        stage('MR Docker Build and Push') {
+            when {
+                not { branch 'main' }
+            }
             steps {
                 script {
-                    def branchName = env.BRANCH_NAME
-                    def tag = branchName == 'main' ? 'latest' : env.GIT_COMMIT.take(7)
-                    def repositoryPath = branchName == 'main' ? 'main' : 'mr'
-                    def fullImageName = "${REGISTRY_URL}/repository/${repositoryPath}/${IMAGE_NAME}:${tag}"
-
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
-                        sh "docker login ${REGISTRY_URL} --username $REGISTRY_USER --password $REGISTRY_PASS"
-                        sh "docker build -t ${fullImageName} ."
-                        sh "docker push ${fullImageName}"
-                    }
+                    def tag = env.GIT_COMMIT.take(7)
+                    def fullImageName = "${REGISTRY_URL}/repository/mr/${IMAGE_NAME}:${tag}"
+                    dockerImageBuildAndPush(fullImageName)
                 }
             }
         }
+    }
+}
+
+// Define a method for Docker build and push to avoid repetition
+def dockerImageBuildAndPush(fullImageName) {
+    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS_ID, usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
+        sh "docker login ${REGISTRY_URL} --username $REGISTRY_USER --password $REGISTRY_PASS"
+        sh "docker build -t ${fullImageName} ."
+        sh "docker push ${fullImageName}"
+        sh "docker logout ${REGISTRY_URL}" // Logout after pushing the image
     }
 }
