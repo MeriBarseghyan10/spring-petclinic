@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
+        DOCKER_CREDENTIALS_ID = '1111' // The  ID of  Docker registry credentials in Jenkins
     }
 
     stages {
@@ -46,10 +47,11 @@ pipeline {
                     // Define the Docker image name using the Git commit hash
                     def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def imageName = "spring-petclinic:${commitSha}"
-                    // Building the Docker image
-                    def appImage = docker.build(imageName, '.')
-                    // If you still want to push to a registry that doesn't require auth
-                    // appImage.push() // Simply push without specifying credentials
+                    // Building and pushing the Docker image
+                    docker.withRegistry(MAIN_REPO_URL, DOCKER_CREDENTIALS_ID) {
+                        def appImage = docker.build(imageName, '.')
+                        appImage.push()
+                    }
                 }
             }
         }
