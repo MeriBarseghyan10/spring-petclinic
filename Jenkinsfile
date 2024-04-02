@@ -4,7 +4,6 @@ pipeline {
     environment {
         // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
         MAIN_REPO_URL = 'https://host.docker.internal:8082/repository/main' // Use HTTPS instead of HTTP
-        DOCKER_REGISTRY_CREDENTIALS = credentials('1111') 
     }
 
     stages {
@@ -39,22 +38,19 @@ pipeline {
             }
         }
 
-     stage('Create and Push Docker Image') {
-    when {
-        branch 'main' // Only run this stage if the branch is 'main'
-    }
-    steps {
-        script {docker.withRegistry("${MAIN_REPO_URL}", "${DOCKER_REGISTRY_CREDENTIALS}") {
-                def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                def imageName = "spring-petclinic:${commitSha}"
-                def appImage = docker.build(imageName, '.')
-                appImage.push()
+        stage('Create and Push Docker Image') {
+            when {
+                branch 'main' // Only run this stage if the branch is 'main'
+            }
+            steps {
+                script {
+                    def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def imageName = "spring-petclinic:${commitSha}"
+                    def appImage = docker.build(imageName, '.')
+                    appImage.push()
+                }
             }
         }
-    }
-}
-
-
     }
 
     post {
