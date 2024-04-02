@@ -39,21 +39,22 @@ pipeline {
             }
         }
 
-        stage('Create and Push Docker Image') {
-            when {
-                branch 'main' // Only run this stage if the branch is 'main'
-            }
-            steps {
-                script {
-                    docker.withRegistry(url: "${env.MAIN_REPO_URL}", credentialsId: "${env.DOCKER_REGISTRY_CREDENTIALS}") {
-                        def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        def imageName = "spring-petclinic:${commitSha}"
-                        def appImage = docker.build(imageName, '.')
-                        appImage.push()
-                    }
-                }
+       stage('Create and Push Docker Image') {
+    when {
+        branch 'main' // Only run this stage if the branch is 'main'
+    }
+    steps {
+        script {
+            docker.withRegistry([credentialsId: "${env.DOCKER_REGISTRY_CREDENTIALS}", url: "${env.MAIN_REPO_URL}"]) {
+                def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                def imageName = "spring-petclinic:${commitSha}"
+                def appImage = docker.build(imageName, '.')
+                appImage.push()
             }
         }
+    }
+}
+
     }
 
     post {
