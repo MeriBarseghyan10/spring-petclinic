@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        MAIN_REPO_URL = 'http://localhost:8082/repository/main'
-        DOCKER_CREDENTIALS_ID = '1111' // The  ID of  Docker registry credentials in Jenkins
+        // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
+        MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main'
     }
 
     stages {
@@ -44,11 +44,10 @@ pipeline {
             }
             steps {
                 script {
-                    // Define the Docker image name using the Git commit hash
-                    def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageName = "spring-petclinic:${commitSha}"
-                    // Building and pushing the Docker image
-                    docker.withRegistry(MAIN_REPO_URL, DOCKER_CREDENTIALS_ID) {
+                    // Use the MAIN_REPO_URL from the environment variable
+                    docker.withRegistry("${env.MAIN_REPO_URL}", 'DOCKER_CREDENTIALS_ID') {
+                        def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def imageName = "spring-petclinic:${commitSha}"
                         def appImage = docker.build(imageName, '.')
                         appImage.push()
                     }
@@ -60,7 +59,6 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-        
         }
     }
 }
