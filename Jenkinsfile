@@ -44,8 +44,7 @@ pipeline {
         branch 'main' // Only run this stage if the branch is 'main'
     }
     steps {
-        script {
-            docker.withRegistry('http://localhost:8082/repository/main/', '1111') {
+        script {docker.withRegistry("${MAIN_REPO_URL}", "${DOCKER_REGISTRY_CREDENTIALS}") {
                 def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 def imageName = "spring-petclinic:${commitSha}"
                 def appImage = docker.build(imageName, '.')
