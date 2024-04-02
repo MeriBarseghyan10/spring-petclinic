@@ -44,9 +44,9 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('http://host.docker.internal:8082/repository/main/', '1111'){
+                    docker.withRegistry('http://host.docker.internal:8082', '1111'){
                     def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageName = "spring-petclinic:${commitSha}"
+                    def imageName = "main/spring-petclinic:${commitSha}"
                     def appImage = docker.build(imageName, '.')
                     appImage.push()
                 }
