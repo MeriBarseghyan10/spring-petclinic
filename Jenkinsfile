@@ -44,8 +44,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Checking Docker version to ensure Docker is installed and available on the agent
-                    sh 'docker --version'
                     // Define the Docker image name using the Git commit hash
                     def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def imageName = "spring-petclinic:${commitSha}"
