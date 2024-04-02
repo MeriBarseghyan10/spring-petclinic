@@ -4,6 +4,7 @@ pipeline {
     environment {
         // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
         MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main'
+        DOCKER_CREDENTIALS_ID = '1111' //  Docker credentials ID
     }
 
     stages {
@@ -44,8 +45,8 @@ pipeline {
             }
             steps {
                 script {
-                    // Use the MAIN_REPO_URL from the environment variable
-                    docker.withRegistry("${env.MAIN_REPO_URL}", 'DOCKER_CREDENTIALS_ID') {
+                    // Use the MAIN_REPO_URL and DOCKER_CREDENTIALS_ID from the environment variables
+                    docker.withRegistry("${env.MAIN_REPO_URL}", "${env.DOCKER_CREDENTIALS_ID}") {
                         def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                         def imageName = "spring-petclinic:${commitSha}"
                         def appImage = docker.build(imageName, '.')
