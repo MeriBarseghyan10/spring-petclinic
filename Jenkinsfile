@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
         MAIN_REPO_URL = 'https://host.docker.internal:8082/repository/main' // Use HTTPS instead of HTTP
-        DOCKER_REGISTRY_CREDENTIALS = credentials('DOCKER_CREDENTIALS_ID') 
+        DOCKER_REGISTRY_CREDENTIALS = '1111'
     }
 
     stages {
