@@ -45,7 +45,7 @@ pipeline {
     }
     steps {
         script {
-            docker.withRegistry([url: "${env.MAIN_REPO_URL}", credentialsId: "${env.DOCKER_REGISTRY_CREDENTIALS}"]) {
+            docker.withRegistry('http://localhost:8082/repository/main/', '1111') {
                 def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                 def imageName = "spring-petclinic:${commitSha}"
                 def appImage = docker.build(imageName, '.')
