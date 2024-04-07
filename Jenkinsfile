@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
-        MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main' // Consider using HTTPS instead of HTTP for security
+        MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main' // Use HTTPS instead of HTTP
     }
 
     stages {
@@ -13,12 +13,7 @@ pipeline {
             }
             steps {
                 echo 'Running Checkstyle analysis...'
-                script {
-                    docker.image('maven:3.6.3-jdk-11').inside {
-                        sh 'mvn checkstyle:checkstyle'
-                        // Note: Depending on your setup, you may need to adjust paths for artifact archiving
-                    }
-                }
+                sh 'mvn checkstyle:checkstyle'
                 archiveArtifacts artifacts: '**/target/checkstyle-result.xml', fingerprint: true
             }
         }
@@ -29,11 +24,7 @@ pipeline {
             }
             steps {
                 echo 'Running tests...'
-                script {
-                    docker.image('maven:3.6.3-jdk-11').inside {
-                        sh 'mvn test'
-                    }
-                }
+                sh 'mvn test'
             }
         }
 
@@ -43,11 +34,7 @@ pipeline {
             }
             steps {
                 echo 'Building project (without tests)...'
-                script {
-                    docker.image('maven:3.6.3-jdk-11').inside {
-                        sh 'mvn clean install -DskipTests'
-                    }
-                }
+                sh 'mvn clean install -DskipTests'
             }
         }
 
@@ -57,12 +44,12 @@ pipeline {
             }
             steps {
                 script {
-                    docker.withRegistry('http://host.docker.internal:8082', 'registry-credentials-id'){
-                        def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                        def imageName = "main/spring-petclinic:${commitSha}"
-                        def appImage = docker.build(imageName, '.')
-                        appImage.push()
-                    }
+                    docker.withRegistry('http://host.docker.internal:8082', '1111'){
+                    def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                    def imageName = "main/spring-petclinic:${commitSha}"
+                    def appImage = docker.build(imageName, '.')
+                    appImage.push()
+                }
                 }
             }
         }
