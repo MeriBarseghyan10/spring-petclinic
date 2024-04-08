@@ -3,10 +3,22 @@ pipeline {
 
     environment {
         // Defining main repository URL using host.docker.internal for Docker-in-Docker communication
-        MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main' // Use HTTPS instead of HTTP
+        MAIN_REPO_URL = 'http://host.docker.internal:8082/repository/main' // It's recommended to use HTTPS instead of HTTP for security
     }
 
     stages {
+        // New Maven Install stage
+        stage('Maven Install') {
+            agent {
+                docker {
+                    image 'maven:3.8.4'
+                }
+            }
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        
         stage('Checkstyle') {
             when {
                 not { branch 'main' } // Only run this stage if the branch is not 'main'
@@ -45,11 +57,11 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('http://host.docker.internal:8082', '1111'){
-                    def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    def imageName = "main/spring-petclinic:${commitSha}"
-                    def appImage = docker.build(imageName, '.')
-                    appImage.push()
-                }
+                        def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        def imageName = "main/spring-petclinic:${commitSha}"
+                        def appImage = docker.build(imageName, '.')
+                        appImage.push()
+                    }
                 }
             }
         }
