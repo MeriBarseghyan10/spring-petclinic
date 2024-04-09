@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'spring-petclinic-cloud' //  cloud configuration
+    }
 
     environment {
         // Defining repository URLs for Docker images
@@ -9,12 +11,6 @@ pipeline {
 
     stages {
         stage('Maven Install or Prepare') {
-            agent {
-                docker {
-                    image 'maven:3.8.4'
-                    args '-v /root/.m2:/root/.m2' // Enables Maven cache between runs
-                }
-            }
             steps {
                 script {
                     if (env.BRANCH_NAME == 'main') {
@@ -30,12 +26,7 @@ pipeline {
 
         stage('Checkstyle') {
             when {
-                not { branch 'main' } // Execute for branches other than 'main'
-            }
-            agent {
-                docker {
-                    image 'maven:3.8.4'
-                }
+                not { branch 'main' }
             }
             steps {
                 echo 'Running Checkstyle analysis...'
@@ -46,12 +37,7 @@ pipeline {
 
         stage('Test') {
             when {
-                not { branch 'main' } // Execute for branches other than 'main'
-            }
-            agent {
-                docker {
-                    image 'maven:3.8.4'
-                }
+                not { branch 'main' }
             }
             steps {
                 echo 'Running tests...'
@@ -59,28 +45,19 @@ pipeline {
             }
         }
 
-        // This stage is merged with the "Maven Install or Prepare" stage
-        // Consider adding any branch-specific build steps here if needed
-
         stage('Create and Push Docker Image') {
-            agent {
-                docker {
-                  
-                    image 'docker:19.03'
-                    args '-v /var/run/docker.sock:/var/run/docker.sock'
-                }
-            }
             steps {
                 script {
                     def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     def imageName = "spring-petclinic:${commitSha}"
                     def appImage
                     if (env.BRANCH_NAME == 'main') {
-                        appImage = docker.build("${MAIN_REPO_URL}/${imageName}", '.')
+                        sh "docker build -t ${MAIN_REPO_URL}/${imageName} ."
+                        sh "docker push ${MAIN_REPO_URL}/${imageName}"
                     } else {
-                        appImage = docker.build("${MR_REPO_URL}/${imageName}", '.')
+                        sh "docker build -t ${MR_REPO_URL}/${imageName} ."
+                        sh "docker push ${MR_REPO_URL}/${imageName}"
                     }
-                    appImage.push()
                 }
             }
         }
@@ -89,7 +66,6 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            // Optionally, clean up Maven artifacts, Docker images, etc.
         }
     }
 }
