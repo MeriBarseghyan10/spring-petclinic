@@ -1,8 +1,5 @@
 pipeline {
-    agent {
-        label 'spring-petclinic-cloud' //  cloud configuration
-    }
-
+    agent any
     environment {
         // Defining repository URLs for Docker images
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
