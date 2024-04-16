@@ -1,11 +1,19 @@
 pipeline {
     agent any
     environment {
+        // Setting the PATH to include Maven
+        PATH = "/usr/local/bin:$PATH"
+
         // Defining repository URLs for Docker images
         MAIN_REPO_URL = 'http://localhost:8082/repository/main'
         MR_REPO_URL = 'http://localhost:8083/repository/mr'
     }
-
+    tools {
+        // The name here must match the name you gave Maven in the Global Tool Configuration
+        // If Maven is properly set in the PATH, you may not need this block.
+        // Commenting it out for now, but you can uncomment if needed.
+        // maven 'Maven3' 
+    }
     stages {
         stage('Maven Install or Prepare') {
             steps {
