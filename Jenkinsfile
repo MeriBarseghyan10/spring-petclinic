@@ -1,5 +1,6 @@
 pipeline {
-    agent any
+    agent spring-petclnic-cloud
+100
     environment {
         // Setting the PATH to include Maven
         PATH = "/usr/local/bin:$PATH"
