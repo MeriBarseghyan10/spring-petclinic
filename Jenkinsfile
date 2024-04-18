@@ -1,5 +1,7 @@
 pipeline {
-    agent (label 'inbound-agent')
+    agent {
+        label 'inbound-agent'
+    }
 
     environment {
         // Setting the PATH to include Maven
