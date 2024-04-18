@@ -1,6 +1,6 @@
 pipeline {
-    agent spring-petclnic-cloud
-100
+    agent (label 'inbound-agent')
+
     environment {
         // Setting the PATH to include Maven
         PATH = "/usr/local/bin:$PATH"
@@ -16,10 +16,10 @@ pipeline {
                 script {
                     if (env.BRANCH_NAME == 'main') {
                         echo 'Preparing project for main branch (Skipping Tests)...'
-                        sh 'mvn clean install -DskipTests'
+                        sh './mvnw clean install -DskipTests'
                     } else {
                         echo 'Running full Maven install including tests for branch: ${env.BRANCH_NAME}'
-                        sh 'mvn clean install'
+                        sh './mvnw clean install'
                     }
                 }
             }
@@ -31,7 +31,7 @@ pipeline {
             }
             steps {
                 echo 'Running Checkstyle analysis...'
-                sh 'mvn checkstyle:checkstyle'
+                sh './mvnw checkstyle:checkstyle'
                 archiveArtifacts artifacts: '**/target/checkstyle-result.xml', fingerprint: true
             }
         }
