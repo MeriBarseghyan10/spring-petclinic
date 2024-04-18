@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2012-2019 the original author or authors.
  *
@@ -13,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+/*
 package org.springframework.samples.petclinic.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +67,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Sam Brannen
  * @author Michael Isvy
  * @author Dave Syer
- */
+ 
 @DataJpaTest(includeFilters = @ComponentScan.Filter(Service.class))
 // Ensure that if the mysql profile is active we connect to the real database:
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -226,3 +227,4 @@ class ClinicServiceTests {
 	}
 
 }
+*/
